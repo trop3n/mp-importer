@@ -112,4 +112,34 @@ def main():
     Main function to run the importer.
     """
     print("--- Ministry Platform Bulk Importer ---")
-    
+
+    # Basic validation
+    if not all([MP_DOMAIN, CLIENT_ID, CLIENT_SECRET]):
+        print("Error: One or more required environment variables (MP_DOMAIN, CLIENT_ID, CLIENT_SECRET) are missing.")
+        print("Please create a .env file and add these variables.")
+        return
+
+    # 1. Read data from CSV
+    try:
+        print(f"Reading data from '{CSV_FILE_PATH}'...")
+        df = pd.read_csv(CSV_FILE_PATH)
+        # convert the DataFrame to a list of dictionaries, which matches the JSON format needed by the API
+        records_to_import = df.to_dict('records')
+    except FileNotFoundError:
+        print(f"Error: the file '{CSV_FILE_PATH}' was not found.")
+        print("Please make sure the CSV file is in the same directory as the script, or provide the full path.")
+        return
+    except Exception as e:
+        print(f"An error occurred while reading the CSV file: {e}")
+
+    # 2. Get authentication token
+    auth_token = get_auth_token()
+
+    # 3. Perform the bulk insert
+    if auth_token:
+        bulk_create_recrods(auth_token, records_to_import)
+
+    print("--- Process Complete ---")
+
+if __name__ == "__main__":
+    main()
