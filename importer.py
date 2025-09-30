@@ -27,6 +27,7 @@ TARGET_TABLE = "Contacts"
 CSV_FILE_PATH = "sample-data.csv"
 # --- End of Config ---
 
+
 def get_auth_token():
     """
     Authenticates with the Ministry Platform API to get an OAuth access token.
