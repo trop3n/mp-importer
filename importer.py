@@ -66,4 +66,50 @@ def get_auth_token():
 
     sys.exit(1)
 
-def 
+def bulk_create_records(token, records):
+    """
+    Sends a list of records to the Ministry Platform API for creation.
+
+    Args:
+        token(str): The OAuth access token.
+        records(list): A list of dictionaries, where each dictionary represents a record to create.
+    """
+    if not records:
+        print("No records to import.")
+        return
+
+    print(f"Preparing to import {len(records)} records into the '{TARGET_TABLE}' table...")
+    api_url = f"https://{MP_DOMAIN}/api/tables/{TARGET_TABLE}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        # The API expects a JSON array of objects
+        response = requests.post(api_url, data=json.dumps(records), headers=headers)
+        response.raise_for_status()
+
+        print("Bulk import successful!")
+        print("API Response:")
+        # Pretty print the JSON response
+        print(json.dumps(response.json(), indent=2))
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred during bulk import: {http_err}")
+        print("The server responded with an error. THis could be due to:")
+        print("- Invalid data in your CSV (e.g., wrong data types, missing required fields).")
+        print("- Incorrect table or field names in your configuration or CSV headers.")
+        print(f"REsponse content: {response.content.decode()}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"A request error occurred during bulk import: {req_err}")
+    except json.JSONDecodeError:
+        print("Error: Failed to decode JSON response from bulk create endpoint.")
+        print(f"Response was: {response.text}")
+
+def main():
+    """
+    Main function to run the importer.
+    """
+    print("--- Ministry Platform Bulk Importer ---")
+    
